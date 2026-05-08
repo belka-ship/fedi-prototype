@@ -1,0 +1,32 @@
+{
+  "name": "fedi-prototype",
+  "version": "1.0.0",
+  "description": "Fedi First-Run Redesign - A 5-day-shippable redesign of the first-run + community-choice flow",
+  "main": "fedi-prototype_1.jsx",
+  "scripts": {
+    "start": "npx serve .",
+    "dev": "npx serve . -l 3000",
+    "build": "echo 'No build step needed for prototype'",
+    "test": "echo 'No tests specified'"
+  },
+  "keywords": [
+    "fedi",
+    "bitcoin",
+    "federation",
+    "prototype",
+    "react",
+    "ui"
+  ],
+  "author": "Vadim @ Head of Product trial",
+  "license": "MIT",
+  "dependencies": {
+    "react": "^18.2.0",
+    "lucide-react": "^0.263.1"
+  },
+  "devDependencies": {
+    "serve": "^14.2.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

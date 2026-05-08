@@ -1,0 +1,860 @@
+import { useState, useEffect } from "react";
+import { ArrowRight, ArrowLeft, ChevronRight, Shield, Users, Zap, Globe, Check, Sparkles, MessageCircle, Wallet, ScanLine, Grid3x3, UsersRound, Plus, UserCircle2 } from "lucide-react";
+
+// ─────────────────────────────────────────────────────────────────────
+// FEDI FIRST-RUN REDESIGN — Vadim @ Head of Product trial
+// A 5-day-shippable redesign of the first-run + community-choice flow.
+// ─────────────────────────────────────────────────────────────────────
+
+const COMMUNITIES = [
+  {
+    id: "global-bitcoin",
+    name: "Global Bitcoin Federation",
+    logo: "₿",
+    logoColor: "from-amber-300 to-amber-500",
+    members: "12,400",
+    region: "Global",
+    language: "English",
+    primaryUse: "Privacy-first Bitcoin community",
+    guardians: 7,
+    guardiansVerified: 7,
+    mods: ["AI Assistant", "Bitrefill", "BTC Map", "Stable Balance"],
+    blurb: "A worldwide community of Bitcoiners running on Fedimint. Strong privacy posture, mature mod ecosystem.",
+    recommended: true,
+    matchReason: "Most popular for new members",
+    age: "Active 2+ years",
+  },
+  {
+    id: "victoria-btc",
+    name: "Victoria BTC",
+    logo: "V",
+    logoColor: "from-rose-400 to-rose-600",
+    members: "3,200",
+    region: "Latin America",
+    language: "Español · Português · English",
+    primaryUse: "Daily payments + savings",
+    guardians: 5,
+    guardiansVerified: 5,
+    mods: ["Stable Balance", "Bitrefill", "Mi Primer Bitcoin"],
+    blurb: "Multilingual community focused on everyday spending and saving. Strong educational mods.",
+    age: "Active 1+ year",
+  },
+  {
+    id: "orange-club",
+    name: "Orange Club Africa",
+    logo: "🌅",
+    logoColor: "from-orange-300 to-orange-500",
+    members: "8,900",
+    region: "Nigeria · Kenya · Ghana",
+    language: "English",
+    primaryUse: "Stable savings in volatile markets",
+    guardians: 9,
+    guardiansVerified: 9,
+    mods: ["Stable Balance", "BTC Map", "AI Assistant"],
+    blurb: "Africa-focused federation with strong on-the-ground guardian presence. Stable Balance is the headline feature.",
+    age: "Active 1+ year",
+  },
+  {
+    id: "latnet",
+    name: "LatNet",
+    logo: "L",
+    logoColor: "from-emerald-400 to-emerald-600",
+    members: "5,600",
+    region: "Latin America",
+    language: "Español · Português",
+    primaryUse: "Cross-border family payments",
+    guardians: 6,
+    guardiansVerified: 6,
+    mods: ["Stable Balance", "Bitrefill"],
+    blurb: "Built for sending money across LatAm borders to family. New members receive a welcome bonus.",
+    age: "Active 1+ year",
+  },
+  {
+    id: "marigold",
+    name: "Marigold Trust Network",
+    logo: "🪷",
+    logoColor: "from-orange-400 to-amber-500",
+    members: "1,800",
+    region: "South Asia",
+    language: "English · हिन्दी",
+    primaryUse: "Trusted small-circle payments",
+    guardians: 4,
+    guardiansVerified: 4,
+    mods: ["Stable Balance"],
+    blurb: "A smaller, vetted community. High trust, smaller scale, focused on personal networks.",
+    age: "Active 6+ months",
+  },
+];
+
+// ─── PHONE FRAME ─────────────────────────────────────────────────────
+function PhoneFrame({ children }) {
+  return (
+    <div className="relative" style={{ width: 380, height: 780 }}>
+      <div
+        className="absolute inset-0 rounded-[52px] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.45),0_10px_30px_-10px_rgba(0,0,0,0.25)]"
+        style={{
+          background: "linear-gradient(145deg, #1a1a1a, #2a2a2a)",
+          padding: 6,
+        }}
+      >
+        <div className="w-full h-full rounded-[46px] bg-black p-[3px]">
+          <div className="w-full h-full rounded-[44px] overflow-hidden relative bg-white">
+            {/* Status bar */}
+            <div className="absolute top-0 left-0 right-0 h-12 z-50 flex items-center justify-between px-8 pt-3 pointer-events-none">
+              <span className="text-[15px] font-semibold text-black tracking-tight">10:00</span>
+              <div className="flex items-center gap-1.5">
+                <svg width="18" height="11" viewBox="0 0 18 11" fill="none">
+                  <rect x="0" y="6" width="3" height="5" rx="0.5" fill="black"/>
+                  <rect x="5" y="4" width="3" height="7" rx="0.5" fill="black"/>
+                  <rect x="10" y="2" width="3" height="9" rx="0.5" fill="black"/>
+                  <rect x="15" y="0" width="3" height="11" rx="0.5" fill="#999"/>
+                </svg>
+                <svg width="16" height="11" viewBox="0 0 16 11" fill="none">
+                  <path d="M8 2.5C10.5 2.5 12.7 3.4 14.4 4.9L16 3.3C13.9 1.3 11.1 0 8 0C4.9 0 2.1 1.3 0 3.3L1.6 4.9C3.3 3.4 5.5 2.5 8 2.5Z" fill="black"/>
+                  <path d="M8 6C9.5 6 10.9 6.6 12 7.5L13.5 6C12 4.7 10.1 4 8 4C5.9 4 4 4.7 2.5 6L4 7.5C5.1 6.6 6.5 6 8 6Z" fill="black"/>
+                  <circle cx="8" cy="9.5" r="1.5" fill="black"/>
+                </svg>
+                <svg width="26" height="12" viewBox="0 0 26 12" fill="none">
+                  <rect x="0.5" y="0.5" width="22" height="11" rx="3" stroke="black" fill="none"/>
+                  <rect x="2" y="2" width="14" height="8" rx="1.5" fill="black"/>
+                  <rect x="23.5" y="4" width="1.5" height="4" rx="0.5" fill="black"/>
+                </svg>
+              </div>
+            </div>
+            <div className="absolute top-2 left-1/2 -translate-x-1/2 w-32 h-7 bg-black rounded-full z-50" />
+            {children}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── INTRO CAROUSEL ──────────────────────────────────────────────────
+function IntroCarousel({ onComplete }) {
+  const [step, setStep] = useState(0);
+  const [animKey, setAnimKey] = useState(0);
+
+  const slides = [
+    {
+      eyebrow: "Welcome to Fedi",
+      title: "Money built around\npeople you trust.",
+      body: "Fedi isn't a bank. It's a network of communities — each one running its own private wallet service for its members.",
+      visual: "network",
+    },
+    {
+      eyebrow: "How it works",
+      title: "Communities are\nrun by guardians.",
+      body: "Guardians are people in the community who keep the wallet running. They never see your messages, and a single guardian can't access your money alone.",
+      visual: "guardians",
+    },
+    {
+      eyebrow: "What's next",
+      title: "Pick a community\nthat fits you.",
+      body: "We'll help you choose one — by region, language, or what you want to use Fedi for. You can join more later, or switch anytime.",
+      visual: "communities",
+    },
+  ];
+
+  const next = () => {
+    if (step < slides.length - 1) {
+      setStep(step + 1);
+      setAnimKey(animKey + 1);
+    } else {
+      onComplete();
+    }
+  };
+
+  const slide = slides[step];
+
+  return (
+    <div className="absolute inset-0 flex flex-col"
+         style={{
+           background: "linear-gradient(180deg, #fef3e7 0%, #fff5e7 30%, #f0e9ff 70%, #e9f0ff 100%)",
+         }}>
+      <div className="pt-16 px-7 flex justify-end">
+        <button onClick={onComplete} className="text-[14px] text-neutral-500 hover:text-neutral-800 transition-colors font-medium tracking-tight">
+          Skip
+        </button>
+      </div>
+
+      <div className="flex-1 flex items-center justify-center px-8">
+        <div key={`v-${animKey}`} className="w-full fade-up">
+          <SlideVisual kind={slide.visual} />
+        </div>
+      </div>
+
+      <div className="px-8 pb-10">
+        <div key={`t-${animKey}`} className="fade-up-delay">
+          <div className="text-[12px] uppercase tracking-[0.18em] text-neutral-500 font-semibold mb-3">
+            {slide.eyebrow}
+          </div>
+          <h1 className="text-[30px] leading-[1.1] tracking-tight text-neutral-900 font-semibold whitespace-pre-line mb-4" style={{ fontFamily: "'Fraunces', Georgia, serif" }}>
+            {slide.title}
+          </h1>
+          <p className="text-[15px] leading-[1.5] text-neutral-600 max-w-[300px]">
+            {slide.body}
+          </p>
+        </div>
+
+        <div className="flex items-center justify-between mt-8">
+          <div className="flex gap-1.5">
+            {slides.map((_, i) => (
+              <div
+                key={i}
+                className="h-1 rounded-full transition-all duration-300"
+                style={{
+                  width: i === step ? 24 : 8,
+                  backgroundColor: i === step ? "#0a0a0a" : "rgba(0,0,0,0.18)",
+                }}
+              />
+            ))}
+          </div>
+          <button
+            onClick={next}
+            className="bg-black text-white rounded-full h-12 px-6 flex items-center gap-2 font-medium text-[15px] hover:bg-neutral-800 transition-colors active:scale-[0.97]"
+          >
+            {step < slides.length - 1 ? "Next" : "Find a community"}
+            <ArrowRight size={16} strokeWidth={2.4} />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SlideVisual({ kind }) {
+  if (kind === "network") {
+    return (
+      <div className="relative w-full aspect-square max-w-[280px] mx-auto">
+        <svg viewBox="0 0 240 240" className="absolute inset-0 w-full h-full">
+          <defs>
+            <radialGradient id="centerGlow" cx="50%" cy="50%">
+              <stop offset="0%" stopColor="#fef3e7" stopOpacity="0.9"/>
+              <stop offset="100%" stopColor="#fef3e7" stopOpacity="0"/>
+            </radialGradient>
+          </defs>
+          <circle cx="120" cy="120" r="100" fill="url(#centerGlow)" />
+          {[
+            [120, 120, 50, 60], [120, 120, 195, 70],
+            [120, 120, 60, 175], [120, 120, 190, 180],
+            [120, 120, 30, 120], [120, 120, 210, 120],
+          ].map(([x1,y1,x2,y2], i) => (
+            <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#0a0a0a" strokeOpacity="0.12" strokeWidth="1" strokeDasharray="2 3"/>
+          ))}
+        </svg>
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 rounded-full bg-black flex items-center justify-center shadow-lg">
+          <span className="text-white text-3xl font-bold" style={{ fontFamily: "'Fraunces', Georgia, serif" }}>F</span>
+        </div>
+        {[
+          { x: "20%", y: "25%", emoji: "🌅", color: "from-orange-200 to-orange-300", delay: 0 },
+          { x: "82%", y: "29%", emoji: "₿", color: "from-amber-200 to-amber-300", delay: 80 },
+          { x: "25%", y: "73%", emoji: "L", color: "from-emerald-200 to-emerald-300", delay: 160 },
+          { x: "79%", y: "75%", emoji: "V", color: "from-rose-200 to-rose-300", delay: 240 },
+          { x: "12%", y: "50%", emoji: "🪷", color: "from-orange-200 to-amber-300", delay: 320 },
+          { x: "88%", y: "50%", emoji: "✦", color: "from-blue-200 to-indigo-300", delay: 400 },
+        ].map((node, i) => (
+          <div
+            key={i}
+            className={`absolute w-12 h-12 rounded-full bg-gradient-to-br ${node.color} flex items-center justify-center shadow-md text-base font-semibold pop-in`}
+            style={{ left: node.x, top: node.y, transform: "translate(-50%, -50%)", animationDelay: `${node.delay}ms` }}
+          >
+            {node.emoji}
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (kind === "guardians") {
+    return (
+      <div className="relative w-full max-w-[300px] mx-auto">
+        <div className="relative bg-white rounded-3xl shadow-xl p-6 border border-neutral-100">
+          <div className="flex items-center justify-between mb-4">
+            <div className="text-[11px] uppercase tracking-[0.16em] text-neutral-500 font-semibold">Community wallet</div>
+            <div className="flex items-center gap-1 text-[11px] text-emerald-600 font-medium">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"/>
+              Online
+            </div>
+          </div>
+          <div className="flex justify-center my-3">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-neutral-900 to-neutral-700 flex items-center justify-center shadow-lg">
+              <Shield size={28} className="text-white" strokeWidth={1.8}/>
+            </div>
+          </div>
+          <div className="text-center text-[13px] text-neutral-500 mb-4">7 guardians keep this wallet running</div>
+          <div className="flex justify-center -space-x-2">
+            {["GN", "AK", "OK", "MT", "LF", "JR", "SK"].map((initials, i) => {
+              const colors = ["bg-amber-200", "bg-rose-200", "bg-emerald-200", "bg-blue-200", "bg-purple-200", "bg-orange-200", "bg-pink-200"];
+              return (
+                <div
+                  key={i}
+                  className={`w-9 h-9 rounded-full ${colors[i]} border-2 border-white flex items-center justify-center text-[10px] font-semibold text-neutral-800 pop-in`}
+                  style={{ animationDelay: `${200 + i * 60}ms` }}
+                >
+                  {initials}
+                </div>
+              );
+            })}
+          </div>
+          <div className="mt-5 pt-4 border-t border-neutral-100">
+            <div className="flex items-center justify-between text-[12px]">
+              <span className="text-neutral-500">Threshold to act</span>
+              <span className="font-semibold text-neutral-900">5 of 7 must agree</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative w-full max-w-[290px] mx-auto space-y-2.5">
+      {[
+        { name: "Orange Club Africa", region: "Nigeria · Kenya", color: "from-orange-300 to-orange-400", emoji: "🌅", match: true },
+        { name: "Global Bitcoin Federation", region: "Global · English", color: "from-amber-300 to-amber-500", emoji: "₿" },
+        { name: "Victoria BTC", region: "LatAm · Multilingual", color: "from-rose-400 to-rose-500", emoji: "V" },
+      ].map((c, i) => (
+        <div
+          key={i}
+          className={`flex items-center gap-3 p-3 bg-white rounded-2xl shadow-sm border slide-in ${c.match ? "border-emerald-200 ring-1 ring-emerald-100" : "border-neutral-100"}`}
+          style={{ animationDelay: `${100 + i * 100}ms` }}
+        >
+          <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${c.color} flex items-center justify-center text-white font-bold text-base shadow`}>
+            {c.emoji}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-[13px] font-semibold text-neutral-900 truncate">{c.name}</div>
+            <div className="text-[11px] text-neutral-500 truncate">{c.region}</div>
+          </div>
+          {c.match && (
+            <div className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-md whitespace-nowrap">
+              Suggested
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── COMMUNITY LIST ──────────────────────────────────────────────────
+function CommunityList({ onSelect, onBack }) {
+  const [filter, setFilter] = useState("recommended");
+
+  return (
+    <div className="absolute inset-0 flex flex-col bg-white">
+      <div className="pt-14 pb-3 px-5"
+           style={{
+             background: "linear-gradient(180deg, #fef3e7 0%, #fef9f0 60%, #ffffff 100%)",
+           }}>
+        <div className="flex items-center justify-between mb-4 mt-2">
+          <button onClick={onBack} className="w-9 h-9 rounded-full bg-white/70 backdrop-blur flex items-center justify-center hover:bg-white transition-colors">
+            <ArrowLeft size={18} strokeWidth={2}/>
+          </button>
+          <div className="text-[12px] text-neutral-500 font-medium">Step 2 of 2</div>
+        </div>
+        <h1 className="text-[26px] leading-[1.15] tracking-tight text-neutral-900 font-semibold mb-1.5" style={{ fontFamily: "'Fraunces', Georgia, serif" }}>
+          Find your community
+        </h1>
+        <p className="text-[14px] text-neutral-600 leading-snug max-w-[300px]">
+          Each one runs its own wallet service. Pick one that fits where you live and what you want to use Fedi for.
+        </p>
+
+        <div className="flex gap-2 mt-5 -mx-5 px-5 overflow-x-auto scrollbar-hide pb-1">
+          {[
+            { id: "recommended", label: "✨ Suggested" },
+            { id: "all", label: "All" },
+            { id: "africa", label: "Africa" },
+            { id: "latam", label: "Latin America" },
+            { id: "asia", label: "Asia" },
+            { id: "global", label: "Global" },
+          ].map(f => (
+            <button
+              key={f.id}
+              onClick={() => setFilter(f.id)}
+              className={`shrink-0 px-3.5 h-8 rounded-full text-[13px] font-medium transition-all ${
+                filter === f.id
+                  ? "bg-black text-white"
+                  : "bg-white border border-neutral-200 text-neutral-700 hover:border-neutral-300"
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-5 pt-4 pb-24">
+        {COMMUNITIES.map((c, i) => (
+          <button
+            key={c.id}
+            onClick={() => onSelect(c)}
+            className={`w-full text-left mb-3 p-4 rounded-2xl border transition-all hover:shadow-md active:scale-[0.99] slide-in ${
+              c.recommended ? "border-emerald-200 bg-emerald-50/30 ring-1 ring-emerald-100" : "border-neutral-200 bg-white hover:border-neutral-300"
+            }`}
+            style={{ animationDelay: `${i * 50}ms` }}
+          >
+            {c.recommended && (
+              <div className="flex items-center gap-1.5 mb-2.5">
+                <Sparkles size={12} className="text-emerald-700" strokeWidth={2.5}/>
+                <span className="text-[10.5px] font-semibold text-emerald-700 uppercase tracking-wider">{c.matchReason}</span>
+              </div>
+            )}
+            <div className="flex items-start gap-3">
+              <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${c.logoColor} flex items-center justify-center text-white text-lg font-bold shrink-0 shadow-sm`}>
+                {c.logo}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <h3 className="text-[15px] font-semibold text-neutral-900 truncate">{c.name}</h3>
+                </div>
+                <p className="text-[12.5px] text-neutral-600 leading-snug mb-2 line-clamp-2">{c.blurb}</p>
+                <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-neutral-500">
+                  <span className="flex items-center gap-1"><Users size={10} strokeWidth={2}/>{c.members}</span>
+                  <span className="flex items-center gap-1"><Globe size={10} strokeWidth={2}/>{c.region}</span>
+                  <span className="flex items-center gap-1"><Shield size={10} strokeWidth={2}/>{c.guardians} guardians</span>
+                </div>
+              </div>
+              <ChevronRight size={18} className="text-neutral-400 shrink-0 mt-1"/>
+            </div>
+          </button>
+        ))}
+
+        <div className="mt-2 text-center text-[12px] text-neutral-500 px-4 leading-relaxed">
+          Don't see one that fits? You can also <span className="text-black font-medium underline underline-offset-2">scan an invite</span> or <span className="text-black font-medium underline underline-offset-2">create your own</span>.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── COMMUNITY DETAIL ────────────────────────────────────────────────
+function CommunityDetail({ community, onJoin, onBack }) {
+  return (
+    <div className="absolute inset-0 flex flex-col bg-white">
+      <div className="pt-14 px-5 pb-6"
+           style={{
+             background: `linear-gradient(180deg, ${getGradientStop(community.logoColor)}, #ffffff 100%)`,
+           }}>
+        <div className="flex items-center justify-between mb-6 mt-2">
+          <button onClick={onBack} className="w-9 h-9 rounded-full bg-white/80 backdrop-blur flex items-center justify-center hover:bg-white transition-colors">
+            <ArrowLeft size={18} strokeWidth={2}/>
+          </button>
+          <button className="text-[13px] text-neutral-700 font-medium">Share</button>
+        </div>
+
+        <div className="flex items-center gap-4 mb-1">
+          <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${community.logoColor} flex items-center justify-center text-white text-2xl font-bold shadow-md`}>
+            {community.logo}
+          </div>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-[22px] leading-tight tracking-tight font-semibold text-neutral-900" style={{ fontFamily: "'Fraunces', Georgia, serif" }}>
+              {community.name}
+            </h1>
+            <div className="text-[12.5px] text-neutral-500 mt-0.5">{community.age} · {community.members} members</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-5 pb-32">
+        <p className="text-[15px] text-neutral-700 leading-relaxed mb-6">
+          {community.blurb}
+        </p>
+
+        <div className="grid grid-cols-2 gap-3 mb-6">
+          <FactCard icon={<Globe size={14}/>} label="Region" value={community.region}/>
+          <FactCard icon={<MessageCircle size={14}/>} label="Languages" value={community.language}/>
+          <FactCard icon={<Zap size={14}/>} label="Best for" value={community.primaryUse} span/>
+        </div>
+
+        <Section title="Guardians" subtitle={`${community.guardiansVerified} of ${community.guardians} verified`}>
+          <div className="bg-neutral-50 rounded-2xl p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center -space-x-2">
+                {Array.from({ length: Math.min(community.guardians, 6) }).map((_, i) => {
+                  const colors = ["bg-amber-200", "bg-rose-200", "bg-emerald-200", "bg-blue-200", "bg-purple-200", "bg-orange-200"];
+                  return (
+                    <div key={i} className={`w-8 h-8 rounded-full ${colors[i]} border-2 border-neutral-50 flex items-center justify-center text-[10px] font-semibold text-neutral-800`}>
+                      {String.fromCharCode(65 + i)}{String.fromCharCode(75 + i)}
+                    </div>
+                  );
+                })}
+                {community.guardians > 6 && (
+                  <div className="w-8 h-8 rounded-full bg-neutral-200 border-2 border-neutral-50 flex items-center justify-center text-[10px] font-semibold text-neutral-700">
+                    +{community.guardians - 6}
+                  </div>
+                )}
+              </div>
+              <button className="text-[12px] font-medium text-neutral-700 underline underline-offset-2">Meet them</button>
+            </div>
+            <p className="text-[12.5px] text-neutral-600 leading-relaxed">
+              Guardians keep the wallet running and process payments. <strong className="font-semibold text-neutral-900">No single guardian can access your money</strong> — at least 5 of {community.guardians} must agree to act.
+            </p>
+          </div>
+        </Section>
+
+        <Section title="What's included" subtitle={`${community.mods.length} community apps`}>
+          <div className="space-y-2">
+            {community.mods.map((mod, i) => (
+              <div key={i} className="flex items-center gap-3 p-3 bg-white border border-neutral-200 rounded-xl">
+                <div className="w-9 h-9 rounded-lg bg-neutral-100 flex items-center justify-center text-[14px]">
+                  {modIcon(mod)}
+                </div>
+                <div className="flex-1">
+                  <div className="text-[13.5px] font-medium text-neutral-900">{mod}</div>
+                  <div className="text-[11.5px] text-neutral-500">{modDesc(mod)}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Section>
+
+        <Section title="What you can do here">
+          <ul className="space-y-2">
+            {[
+              "Send and receive Bitcoin instantly with chat",
+              "Hold a stable balance that doesn't move with Bitcoin's price",
+              "Pay other community members directly, no fees",
+              "Use community-curated apps for everyday spending",
+            ].map((item, i) => (
+              <li key={i} className="flex gap-2.5 text-[13.5px] text-neutral-700 leading-snug">
+                <Check size={14} className="text-emerald-600 mt-1 shrink-0" strokeWidth={2.5}/>
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </Section>
+
+        <div className="mt-2 p-4 rounded-2xl bg-amber-50/60 border border-amber-100">
+          <div className="text-[12px] font-semibold text-amber-900 mb-1 flex items-center gap-1.5">
+            <Shield size={12} strokeWidth={2.5}/>
+            Before you join
+          </div>
+          <p className="text-[12.5px] text-amber-900/80 leading-relaxed">
+            Your money in this community depends on the guardians staying online and honest. You can leave anytime, and you can join more than one community.
+          </p>
+        </div>
+      </div>
+
+      <div className="absolute bottom-0 left-0 right-0 p-5 pb-7 bg-gradient-to-t from-white via-white/95 to-white/0">
+        <button
+          onClick={() => onJoin(community)}
+          className="w-full bg-black text-white rounded-full h-14 flex items-center justify-center gap-2 font-medium text-[15px] hover:bg-neutral-800 transition-colors active:scale-[0.99] shadow-lg"
+        >
+          Join {community.name}
+          <ArrowRight size={16} strokeWidth={2.4}/>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function FactCard({ icon, label, value, span }) {
+  return (
+    <div className={`p-3.5 rounded-2xl bg-neutral-50 border border-neutral-100 ${span ? "col-span-2" : ""}`}>
+      <div className="flex items-center gap-1.5 text-[10.5px] font-semibold text-neutral-500 uppercase tracking-wider mb-1">
+        {icon}
+        {label}
+      </div>
+      <div className="text-[13px] font-medium text-neutral-900">{value}</div>
+    </div>
+  );
+}
+
+function Section({ title, subtitle, children }) {
+  return (
+    <div className="mb-6">
+      <div className="flex items-baseline justify-between mb-3">
+        <h2 className="text-[15px] font-semibold text-neutral-900 tracking-tight">{title}</h2>
+        {subtitle && <span className="text-[11.5px] text-neutral-500">{subtitle}</span>}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function modIcon(name) {
+  const map = { "AI Assistant": "✨", "Bitrefill": "🎁", "BTC Map": "📍", "Stable Balance": "₮", "Mi Primer Bitcoin": "📚" };
+  return map[name] || "•";
+}
+function modDesc(name) {
+  const map = {
+    "AI Assistant": "Ask questions, get help",
+    "Bitrefill": "Spend at 5,000+ stores",
+    "BTC Map": "Find places that accept Bitcoin",
+    "Stable Balance": "Hold a stable, non-volatile balance",
+    "Mi Primer Bitcoin": "Free Bitcoin education",
+  };
+  return map[name] || "";
+}
+function getGradientStop(grad) {
+  const map = {
+    "from-amber-300 to-amber-500": "#fef3c7",
+    "from-rose-400 to-rose-600": "#ffe4e6",
+    "from-orange-300 to-orange-500": "#ffedd5",
+    "from-emerald-400 to-emerald-600": "#d1fae5",
+    "from-orange-400 to-amber-500": "#fed7aa",
+  };
+  return map[grad] || "#f5f5f5";
+}
+
+// ─── POST-JOIN HOMESCREEN ────────────────────────────────────────────
+function Homescreen({ community }) {
+  const [showWelcome, setShowWelcome] = useState(true);
+
+  useEffect(() => {
+    const t = setTimeout(() => setShowWelcome(false), 2400);
+    return () => clearTimeout(t);
+  }, []);
+
+  return (
+    <div className="absolute inset-0 flex flex-col bg-white">
+      {showWelcome && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center fade-in"
+             style={{ background: "rgba(255,255,255,0.96)", backdropFilter: "blur(12px)" }}>
+          <div className="text-center px-8 pop-bounce">
+            <div className={`w-20 h-20 mx-auto rounded-3xl bg-gradient-to-br ${community.logoColor} flex items-center justify-center text-white text-3xl font-bold shadow-xl mb-5`}>
+              {community.logo}
+            </div>
+            <div className="text-[12px] uppercase tracking-[0.18em] text-emerald-700 font-semibold mb-2">You're in</div>
+            <h2 className="text-[24px] font-semibold tracking-tight text-neutral-900 leading-tight" style={{ fontFamily: "'Fraunces', Georgia, serif" }}>
+              Welcome to<br/>{community.name}
+            </h2>
+          </div>
+        </div>
+      )}
+
+      <div className="pt-14 px-5 pb-3"
+           style={{
+             background: "linear-gradient(180deg, #fef3e7 0%, #f0e9ff 100%)",
+           }}>
+        <div className="flex items-center justify-between mb-3 mt-1">
+          <h1 className="text-[26px] font-semibold tracking-tight text-neutral-900">Wallet</h1>
+          <div className="flex items-center gap-2">
+            <button className="w-9 h-9 rounded-full bg-white/60 backdrop-blur flex items-center justify-center"><Plus size={18} strokeWidth={2}/></button>
+            <button className="w-9 h-9 rounded-full bg-white/60 backdrop-blur flex items-center justify-center"><UserCircle2 size={18} strokeWidth={1.8}/></button>
+          </div>
+        </div>
+        <div className="inline-flex items-center gap-1.5 bg-white/70 backdrop-blur px-3 py-1 rounded-full text-[12px] text-neutral-700">
+          <div className={`w-4 h-4 rounded bg-gradient-to-br ${community.logoColor} flex items-center justify-center text-white text-[8px] font-bold`}>{community.logo}</div>
+          {community.name}
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-5 pt-5 pb-24">
+        <div className="rounded-3xl bg-gradient-to-br from-neutral-900 to-neutral-700 p-5 text-white mb-4 shadow-lg relative overflow-hidden">
+          <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-white/5"/>
+          <div className="text-[11.5px] uppercase tracking-[0.16em] text-white/60 font-semibold mb-1">Balance</div>
+          <div className="text-[34px] font-semibold tracking-tight" style={{ fontFamily: "'Fraunces', Georgia, serif" }}>$0.00</div>
+          <div className="text-[12.5px] text-white/60 mt-0.5">0 sats</div>
+          <div className="flex gap-2 mt-4">
+            <button className="flex-1 bg-white text-black rounded-full h-10 text-[13px] font-medium flex items-center justify-center gap-1.5">
+              <ArrowLeft size={13} strokeWidth={2.4} className="rotate-90"/> Receive
+            </button>
+            <button className="flex-1 bg-white/15 text-white rounded-full h-10 text-[13px] font-medium flex items-center justify-center gap-1.5">
+              <ArrowRight size={13} strokeWidth={2.4} className="-rotate-90"/> Send
+            </button>
+          </div>
+        </div>
+
+        <div className="bg-emerald-50/60 rounded-2xl p-4 mb-4 border border-emerald-100">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-[14px] font-semibold text-emerald-900 tracking-tight">Get started</h3>
+            <span className="text-[11px] text-emerald-700 font-medium">1 of 3</span>
+          </div>
+          <div className="space-y-2">
+            {[
+              { done: true, label: "Joined a community" },
+              { done: false, label: "Receive your first sats", primary: true },
+              { done: false, label: "Send to someone you know" },
+            ].map((step, i) => (
+              <div key={i} className={`flex items-center gap-3 p-2.5 rounded-xl ${step.primary ? "bg-white shadow-sm border border-emerald-200" : ""}`}>
+                <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
+                  step.done ? "bg-emerald-600" : step.primary ? "border-2 border-emerald-600 bg-white" : "border-2 border-neutral-300 bg-white"
+                }`}>
+                  {step.done && <Check size={12} className="text-white" strokeWidth={3}/>}
+                </div>
+                <span className={`text-[13px] ${step.done ? "text-neutral-500 line-through" : step.primary ? "text-neutral-900 font-medium" : "text-neutral-700"} flex-1`}>
+                  {step.label}
+                </span>
+                {step.primary && <ArrowRight size={14} className="text-emerald-700"/>}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="mb-4">
+          <div className="flex items-baseline justify-between mb-3">
+            <h3 className="text-[14px] font-semibold text-neutral-900 tracking-tight">Community apps</h3>
+            <button className="text-[12px] text-neutral-500 font-medium">See all</button>
+          </div>
+          <div className="grid grid-cols-4 gap-3">
+            {community.mods.slice(0, 4).map((mod, i) => (
+              <div key={i} className="flex flex-col items-center gap-1.5">
+                <div className="w-12 h-12 rounded-2xl bg-neutral-100 flex items-center justify-center text-[16px]">
+                  {modIcon(mod)}
+                </div>
+                <div className="text-[10px] text-neutral-700 text-center font-medium leading-tight">{mod}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-neutral-100 pt-2 pb-7">
+        <div className="flex items-end justify-around relative">
+          <NavItem icon={<Wallet size={20}/>} label="Wallet" active/>
+          <NavItem icon={<MessageCircle size={20}/>} label="Chat"/>
+          <div className="w-12 h-12 rounded-full bg-black flex items-center justify-center -mt-5 shadow-lg">
+            <ScanLine size={20} className="text-white"/>
+          </div>
+          <NavItem icon={<Grid3x3 size={20}/>} label="Mini Apps"/>
+          <NavItem icon={<UsersRound size={20}/>} label="Community"/>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function NavItem({ icon, label, active }) {
+  return (
+    <button className="flex flex-col items-center gap-0.5 px-2 py-1">
+      <div className={active ? "text-black" : "text-neutral-400"}>{icon}</div>
+      <span className={`text-[10px] ${active ? "text-black font-semibold" : "text-neutral-500"}`}>{label}</span>
+    </button>
+  );
+}
+
+// ─── MAIN ────────────────────────────────────────────────────────────
+export default function Prototype() {
+  const [screen, setScreen] = useState("intro");
+  const [selected, setSelected] = useState(null);
+
+  const reset = () => { setScreen("intro"); setSelected(null); };
+
+  return (
+    <div className="min-h-screen w-full flex flex-col items-center justify-center p-8 relative" style={{
+      background: "linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0f0f12 100%)",
+      fontFamily: "'Inter', -apple-system, sans-serif",
+    }}>
+      <div className="absolute inset-0 opacity-[0.04]" style={{
+        backgroundImage: "radial-gradient(circle, white 1px, transparent 1px)",
+        backgroundSize: "32px 32px",
+      }}/>
+
+      <div className="relative w-full max-w-md mb-6 text-center">
+        <div className="text-[10px] uppercase tracking-[0.22em] text-white/40 font-semibold mb-2">Fedi · First-Run Redesign</div>
+        <h1 className="text-[24px] text-white font-semibold tracking-tight" style={{ fontFamily: "'Fraunces', Georgia, serif" }}>
+          From "Auto-Select" to a flow you'd actually trust
+        </h1>
+        <div className="text-[12.5px] text-white/50 mt-2 leading-relaxed max-w-sm mx-auto">
+          A 5-day-shippable redesign of the new-user experience. Tap through the prototype.
+        </div>
+      </div>
+
+      <div className="relative">
+        <PhoneFrame>
+          <div className="absolute inset-0">
+            {screen === "intro" && (
+              <div className="absolute inset-0 fade-in">
+                <IntroCarousel onComplete={() => setScreen("list")}/>
+              </div>
+            )}
+            {screen === "list" && (
+              <div className="absolute inset-0 slide-from-right">
+                <CommunityList
+                  onSelect={(c) => { setSelected(c); setScreen("detail"); }}
+                  onBack={() => setScreen("intro")}
+                />
+              </div>
+            )}
+            {screen === "detail" && selected && (
+              <div className="absolute inset-0 slide-from-right">
+                <CommunityDetail
+                  community={selected}
+                  onJoin={(c) => { setSelected(c); setScreen("home"); }}
+                  onBack={() => setScreen("list")}
+                />
+              </div>
+            )}
+            {screen === "home" && selected && (
+              <div className="absolute inset-0 fade-in">
+                <Homescreen community={selected}/>
+              </div>
+            )}
+          </div>
+        </PhoneFrame>
+      </div>
+
+      <div className="relative mt-6 flex items-center gap-4">
+        <button
+          onClick={reset}
+          className="text-white/40 hover:text-white/80 text-[12px] font-medium transition-colors flex items-center gap-1.5"
+        >
+          ↻ Restart
+        </button>
+        <div className="text-white/30 text-[11px]">
+          {screen === "intro" && "Step 1 — Comprehension"}
+          {screen === "list" && "Step 2 — Browse with real signal"}
+          {screen === "detail" && "Step 3 — Informed decision"}
+          {screen === "home" && "Step 4 — Activated, with next step"}
+        </div>
+      </div>
+
+      <div className="relative mt-10 text-center text-white/30 text-[11px] max-w-md leading-relaxed">
+        Vadim · Prototype for Fedi Head of Product trial · Built in one session, fully clickable, deliberately matched to existing visual language.
+      </div>
+
+      <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+
+      <style>{`
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { scrollbar-width: none; }
+
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(12px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes popIn {
+          0% { opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
+          70% { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
+          100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+        @keyframes popInStatic {
+          0% { opacity: 0; transform: scale(0.6); }
+          70% { opacity: 1; transform: scale(1.08); }
+          100% { opacity: 1; transform: scale(1); }
+        }
+        @keyframes slideIn {
+          from { opacity: 0; transform: translateX(-12px); }
+          to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes slideFromRight {
+          from { opacity: 0; transform: translateX(20px); }
+          to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes popBounce {
+          0% { opacity: 0; transform: scale(0.85); }
+          60% { opacity: 1; transform: scale(1.04); }
+          100% { opacity: 1; transform: scale(1); }
+        }
+
+        .fade-in { animation: fadeIn 0.4s ease-out both; }
+        .fade-up { animation: fadeUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) both; }
+        .fade-up-delay { animation: fadeUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both; }
+        .pop-in { animation: popInStatic 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+        .slide-in { animation: slideIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) both; }
+        .slide-from-right { animation: slideFromRight 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; }
+        .pop-bounce { animation: popBounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+        /* Special version for absolutely-positioned network nodes that use translate(-50%, -50%) */
+        .relative > .pop-in { animation-name: popIn; }
+      `}</style>
+    </div>
+  );
+}
